@@ -143,7 +143,3 @@ All raw data are public and free to reuse for research purposes; consult each or
 - UNAIDS data: UNAIDS terms of use
 - Our World in Data mirrors: OWID content is available under Creative Commons BY 4.0 (https://ourworldindata.org/about#access-to-owid-content-and-data); underlying data retain their original source's license
 - Karlinsky (2024) ICDR dataset: released under the paper's stated open-data terms (Demographic Research is an open-access journal)
-
-## Citation
-
-If you use this repository, please cite the accompanying manuscript (see `manuscript/`) and the original data sources listed above.
