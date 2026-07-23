@@ -1,0 +1,33 @@
+# Core data handling
+pandas
+numpy
+
+# Statistics
+scipy
+statsmodels
+
+# Spatial statistics (Section V-D: Moran's I, spatial lag/error models)
+libpysal
+esda
+spreg
+
+# Plotting
+matplotlib
+seaborn
+
+# Flowcharts (Figs. 1, 2, 7, 8, 10)
+graphviz
+
+# World map choropleth (Fig. 3)
+geopandas
+
+# Machine learning notebook (notebooks/cervical_cancer_prediction_model.ipynb)
+scikit-learn
+shap
+jupyter
+nbformat
+nbconvert
+
+# Optional: interactive world map alternative
+plotly
+kaleido
