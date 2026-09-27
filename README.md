@@ -2,7 +2,9 @@
 
 A multi-robustness-checked ecological analysis of global cervical cancer burden (GLOBOCAN 2022/2024), linked to the UNDP Human Development Index, HPV vaccination coverage, national cervical screening programs, female smoking prevalence, HIV prevalence, and death-registration completeness, with paired temporal, mediation, and spatial-lag robustness checks.
 
-This repository contains **all raw data, processed datasets, analysis scripts, figures, a predictive-modeling notebook, and the manuscript** for full reproducibility.
+This repository contains **all raw data, processed datasets, analysis scripts, figures, and a predictive-modeling notebook** for full reproducibility. All project files live in the `cervical-cancer-hdi-ecological-study/` folder.
+
+**Quick reproduction:** `python cervical-cancer-hdi-ecological-study/scripts/reproduce_all.py` regenerates every statistic reported in the manuscript from `data/processed/` in one run (expected output: `scripts/reproduce_all_output.txt`).
 
 ---
 
@@ -16,14 +18,13 @@ This repository contains **all raw data, processed datasets, analysis scripts, f
 │   ├── raw/                           <- original, unmodified downloaded source files
 │   └── processed/                     <- merged/derived analytic datasets (numbered by pipeline stage)
 ├── scripts/
-│   ├── 01-17_*.py                     <- analysis pipeline, in execution order
+│   ├── reproduce_all.py               <- ONE script that regenerates every reported statistic
+│   ├── reproduce_all_output.txt       <- its expected output
+│   ├── 01-17_*.py                     <- original step-by-step analysis pipeline, in execution order
 │   └── figures/                       <- scripts that generate every figure in the manuscript
 ├── figures/                           <- final rendered figures (PNG), as they appear in the manuscript
-├── notebooks/
-│   └── cervical_cancer_prediction_model.ipynb   <- supplementary ML prediction notebook (Random Forest / Gradient Boosting)
-└── manuscript/
-    ├── Cervical_Cancer_IEEE_Format_Draft.docx      <- IEEE-structured version (sections I-VII, appendices A-F)
-    └── Cervical_Cancer_Ecological_Study_Draft.docx <- original journal-article-format version
+└── notebooks/
+    └── cervical_cancer_prediction_model.ipynb   <- supplementary ML prediction notebook (Random Forest / Gradient Boosting)
 ```
 
 ---
@@ -108,7 +109,10 @@ Run in numeric order to reproduce the full analysis from raw data to final resul
 # 1. Clone this repository, then install dependencies
 pip install -r requirements.txt
 
-# 2. Run the pipeline in order (from the repository root)
+# 2a. Fastest: reproduce every statistic in the manuscript in one run
+python cervical-cancer-hdi-ecological-study/scripts/reproduce_all.py
+
+# 2b. Or run the original step-by-step pipeline (from the cervical-cancer-hdi-ecological-study/ folder)
 for f in scripts/0*.py scripts/1*.py; do python3 "$f"; done
 
 # 3. Regenerate figures
@@ -125,12 +129,12 @@ Note: several scripts contain hardcoded file paths from the original development
 ## Key Findings Summary
 
 - HDI is strongly, independently associated with cervical cancer incidence (Spearman ρ = -0.63) and mortality (ρ = -0.74), robust across every check applied.
-- A naive comparison of GLOBOCAN 2022 vs. 2024 tier-level averages suggested the low-vs-high-HDI gap widened sharply — a **paired, same-country comparison shows this was a compositional artifact**, not a real trend (p = 0.940).
-- HIV prevalence explains a modest, statistically significant 7.1% of HDI's total effect on mortality (mediation analysis).
+- A naive comparison of GLOBOCAN 2022 vs. 2024 tier-level medians suggested the low-vs-very-high-HDI gap widened from 2.78x to 4.04x. This increase comes from differences in the country sets compared (with each cycle's full country set the ratio moves only from 2.78x to 2.87x), and a **paired, same-country comparison shows no change** (p = 0.940).
+- HIV prevalence statistically accounts for a modest, significant 10.6% of the HDI-mortality association (product-of-coefficients decomposition; descriptive, not causal). Note: `scripts/13_mediation_analysis.py` was corrected so that path a uses the same covariates as paths b and c; the earlier version gave 7.1%.
 - The HDI-incidence relationship holds equally in countries with high- and low-quality underlying surveillance data, arguing against a GLOBOCAN data-imputation artifact.
 - Formal spatial-lag correction confirms HDI's effect is real but **roughly half the magnitude** conventional (spatially-naive) OLS estimates — a caution for the wider ecological-GLOBOCAN literature.
 
-Full results, statistics, and discussion are in `manuscript/`.
+Full results, statistics, and discussion are in the accompanying manuscript.
 
 ---
 
