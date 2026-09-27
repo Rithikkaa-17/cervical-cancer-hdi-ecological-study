@@ -3,14 +3,19 @@ import numpy as np
 import statsmodels.api as sm
 from scipy import stats
 
-df = pd.read_csv("/mnt/user-data/outputs/cervical_cancer_hiv_sample.csv")
+import os
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+df = pd.read_csv(os.path.join(ROOT, "data", "processed", "04_hiv_mediation_sample_n131.csv"))
 df["logASMR"] = np.log(df["ASMR"])
 n = len(df)
 print(f"n = {n}")
 
-# Baron & Kenny / product-of-coefficients mediation: does HIV mediate HDI's effect on ASMR?
-# Path a: HDI -> HIV
-Xa = sm.add_constant(df["HDI"])
+# Product-of-coefficients decomposition: how much of the HDI-mortality association is
+# statistically accounted for by HIV prevalence (descriptive, not causal mediation)
+# Path a: HDI -> HIV, adjusted for the SAME covariates as paths b and c so that
+# a*b equals c - c' exactly (corrected; the earlier version used HDI alone)
+COV = ["HPV_vax_coverage","Screening_program_bin","Smoking_prev_female"]
+Xa = sm.add_constant(df[["HDI"] + COV])
 model_a = sm.OLS(df["HIV_prev"], Xa).fit()
 a = model_a.params["HDI"]
 se_a = model_a.bse["HDI"]
@@ -51,7 +56,7 @@ boot_indirect = []
 for _ in range(n_boot):
     idx = np.random.choice(n, n, replace=True)
     dboot = df.iloc[idx]
-    Xa_b = sm.add_constant(dboot["HDI"])
+    Xa_b = sm.add_constant(dboot[["HDI"] + COV])
     ma = sm.OLS(dboot["HIV_prev"], Xa_b).fit()
     Xb_b = sm.add_constant(dboot[["HDI","HIV_prev","HPV_vax_coverage","Screening_program_bin","Smoking_prev_female"]])
     mb = sm.OLS(dboot["logASMR"], Xb_b).fit()
