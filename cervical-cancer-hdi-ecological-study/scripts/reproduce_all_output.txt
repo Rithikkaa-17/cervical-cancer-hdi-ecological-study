@@ -30,7 +30,7 @@ smoking vs logASIR: rho -0.33 p 2.6e-05
 smoking vs logASMR: rho -0.40 p 2.7e-07
 
 ======================================================================
-V-A  Temporal comparison
+V-B  Temporal comparison
 ======================================================================
 2022 (n=175): naive Low:VeryHigh ASIR ratio 2.775x
 2024 (n=156): naive Low:VeryHigh ASIR ratio 4.043x
@@ -41,7 +41,7 @@ HDI vs %chg rho -0.035 p 0.665
 full-sample paired n=175 median 0.00% Wilcoxon p 0.903 KW p 0.961
 
 ======================================================================
-V-B  HIV-extended model (n = 131)
+V-C  HIV-extended model and registry-quality strata (n = 131)
 ======================================================================
 HIV vs ASIR: rho 0.75 p 1.1e-24
 HIV vs ASMR: rho 0.74 p 1.5e-23
@@ -55,14 +55,14 @@ High (>=90%) HDI-ASIR -0.55 HDI-ASMR -0.69 tiers {'Very High': 55, 'High': 24, '
 Lower (<90%) HDI-ASIR -0.58 HDI-ASMR -0.63 tiers {'Medium': 23, 'High': 15, 'Low': 11, 'Very High': 10}
 
 ======================================================================
-V-C  Mediation (consistent covariate adjustment)
+V-D  Mediation (consistent covariate adjustment)
 ======================================================================
 a=-8.26 (p=0.002) b=0.0813 ab=-0.672 Sobel z=-2.70 p=0.007
 c=-6.34 c'=-5.66 proportion=10.6%
 bias-corrected bootstrap 95% CI [-1.043 -0.37 ]
 
 ======================================================================
-V-D  Spatial analysis (n = 131)
+V-A  Spatial analysis, primary (n = 131)
 ======================================================================
 k-NN k=5 (primary)           Moran(resid) 0.308 p=0.001 | lag HDI -2.09 p=1.9e-07 rho 0.564 p=3.7e-15 pseudoR2 0.73 | OLS R2 0.60 HDI -4.06 | vax p=0.057 screen p=0.087 HIV p=0.010 | total HDI -4.80
 Moran raw ASIR 0.74  Moran HDI 0.71
@@ -73,11 +73,35 @@ k-NN k=10                    Moran(resid) 0.251 p=0.001 | lag HDI -2.06 p=2.9e-0
 
 smallest cutoff giving every country a neighbor: 3627 km
 inverse-distance 3627 km     Moran(resid) 0.171 p=0.001 | lag HDI -2.97 p=7.4e-12 rho 0.486 p=1.9e-06 pseudoR2 0.67 | OLS R2 0.60 HDI -4.06 | vax p=0.018 screen p=0.016 HIV p=0.004 | total HDI -5.79
-distance-band 3627 km        Moran(resid) 0.091 p=0.003 | lag HDI -3.49 p=1.3e-15 rho 0.376 p=2.2e-03 pseudoR2 0.63 | OLS R2 0.60 HDI -4.06 | vax p=0.005 screen p=0.012 HIV p=0.001 | total HDI -5.59
+distance-band 3627 km        Moran(resid) 0.091 p=0.007 | lag HDI -3.49 p=1.3e-15 rho 0.376 p=2.2e-03 pseudoR2 0.63 | OLS R2 0.60 HDI -4.06 | vax p=0.005 screen p=0.012 HIV p=0.001 | total HDI -5.59
 inverse-distance 3700 km     Moran(resid) 0.168 p=0.001 | lag HDI -2.98 p=6.2e-12 rho 0.489 p=2.0e-06 pseudoR2 0.67 | OLS R2 0.60 HDI -4.06 | vax p=0.018 screen p=0.017 HIV p=0.004 | total HDI -5.83
-distance-band 3700 km        Moran(resid) 0.088 p=0.005 | lag HDI -3.50 p=8.5e-16 rho 0.378 p=2.4e-03 pseudoR2 0.63 | OLS R2 0.60 HDI -4.06 | vax p=0.005 screen p=0.012 HIV p=0.001 | total HDI -5.63
+distance-band 3700 km        Moran(resid) 0.088 p=0.007 | lag HDI -3.50 p=8.5e-16 rho 0.378 p=2.4e-03 pseudoR2 0.63 | OLS R2 0.60 HDI -4.06 | vax p=0.005 screen p=0.012 HIV p=0.001 | total HDI -5.63
 
 countries with boundary polygons: 129
 islands (no land neighbor): 23 (17.8%)
 Queen contiguity (n=129, islands kept) Moran(resid) 0.448 p=0.001 | lag HDI -3.67 p=2.8e-17 rho 0.100 p=1.8e-02 pseudoR2 0.61 | OLS R2 0.60 HDI -4.08 | vax p=0.003 screen p=0.005 HIV p=0.000 | total HDI -4.08
 Queen contiguity (n=106, islands dropped) Moran(resid) 0.427 p=0.001 | lag HDI -2.49 p=1.4e-08 rho 0.461 p=2.1e-10 pseudoR2 0.76 | OLS R2 0.63 HDI -4.27 | vax p=0.009 screen p=0.034 HIV p=0.000 | total HDI -4.63
+
+======================================================================
+TABLE V  OLS vs spatial specifications (outcome log ASIR)
+======================================================================
+OLS (no spatial term)              n=131 | HDI -4.06 (p=1.5e-16) | vax p=0.001 | screen p=0.008 | R2 0.60 | AIC 206.5
+Lag, k-NN k=5 (primary)            n=131 | Moran 0.31 (p=0.001) | rho 0.56 (p=3.7e-15) | HDI -2.09 (p=1.9e-07) | total -4.80 | vax p=0.057 | screen p=0.087 | pseudoR2 0.73 | AIC 162.6 | OLS on same n: R2 0.60 AIC 206.5
+Lag, k-NN k=3                      n=131 | Moran 0.32 (p=0.001) | rho 0.49 (p=6.5e-13) | HDI -2.39 (p=3.1e-09) | total -4.64 | vax p=0.033 | screen p=0.055 | pseudoR2 0.72 | AIC 170.9 | OLS on same n: R2 0.60 AIC 206.5
+Lag, k-NN k=8                      n=131 | Moran 0.27 (p=0.001) | rho 0.59 (p=2.4e-14) | HDI -2.09 (p=2.4e-07) | total -5.15 | vax p=0.100 | screen p=0.052 | pseudoR2 0.73 | AIC 163.0 | OLS on same n: R2 0.60 AIC 206.5
+Lag, k-NN k=10                     n=131 | Moran 0.25 (p=0.001) | rho 0.61 (p=1.9e-15) | HDI -2.06 (p=2.9e-07) | total -5.33 | vax p=0.085 | screen p=0.068 | pseudoR2 0.73 | AIC 161.2 | OLS on same n: R2 0.60 AIC 206.5
+Error, k-NN k=5                    n=131 | Moran 0.31 (p=0.001) | lambda 0.68 (p=1.3e-23) | HDI -2.32 (p=5.7e-07) | total nan | vax p=0.485 | screen p=0.290 | pseudoR2 0.56 | AIC 168.3 | OLS on same n: R2 0.60 AIC 206.5
+Lag, inverse distance 3,700 km     n=131 | Moran 0.17 (p=0.001) | rho 0.49 (p=2.0e-06) | HDI -2.98 (p=6.2e-12) | total -5.83 | vax p=0.018 | screen p=0.017 | pseudoR2 0.67 | AIC 186.2 | OLS on same n: R2 0.60 AIC 206.5
+Lag, distance band 3,700 km        n=131 | Moran 0.09 (p=0.007) | rho 0.38 (p=2.4e-03) | HDI -3.50 (p=8.5e-16) | total -5.63 | vax p=0.005 | screen p=0.012 | pseudoR2 0.63 | AIC 197.7 | OLS on same n: R2 0.60 AIC 206.5
+Lag, Queen (islands kept)          n=129 | Moran 0.45 (p=0.001) | rho 0.10 (p=1.8e-02) | HDI -3.67 (p=2.8e-17) | total -4.08 | vax p=0.003 | screen p=0.005 | pseudoR2 0.61 | AIC 201.4 | OLS on same n: R2 0.60 AIC 204.9
+Lag, Queen (islands dropped)       n=106 | Moran 0.43 (p=0.001) | rho 0.46 (p=2.1e-10) | HDI -2.49 (p=1.4e-08) | total -4.63 | vax p=0.009 | screen p=0.034 | pseudoR2 0.76 | AIC 130.3 | OLS on same n: R2 0.63 AIC 162.7
+
+Primary lag model HDI impacts: coefficient -2.09, direct -2.25, indirect -2.54, total -4.80
+
+======================================================================
+V-B / Table VI  Decomposition of the naive 2.78x -> 4.04x change
+======================================================================
+2022, all 175 countries              Low 22.90  VeryHigh 8.25  ratio 2.775x  (low-HDI n=28)
+2024, all 176 countries              Low 24.10  VeryHigh 8.40  ratio 2.869x  (low-HDI n=26)
+2024, 156-country analytic sample    Low 33.15  VeryHigh 8.20  ratio 4.043x  (low-HDI n=18)
+2022, same 156 countries             Low 34.26  VeryHigh 8.13  ratio 4.214x  (low-HDI n=21)

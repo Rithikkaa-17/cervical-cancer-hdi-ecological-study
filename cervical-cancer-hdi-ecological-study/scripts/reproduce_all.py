@@ -52,8 +52,8 @@ print("VIF:", {c: round(variance_inflation_factor(Xm.values, i), 2) for i, c in 
 for v in ["logASIR", "logASMR"]:
     rho, p = stats.spearmanr(cov.Smoking_prev_female, cov[v]); print(f"smoking vs {v}: rho {rho:.2f} p {p:.1e}")
 
-# ---------------------------------------------------------------- Section V-A
-show("V-A  Temporal comparison")
+# ---------------------------------------------------------------- Section V-B (temporal)
+show("V-B  Temporal comparison")
 panel = pd.read_csv(P + "06_panel_2022_2024.csv")
 def tier(h): return pd.cut(h, [0, .55, .7, .8, 1.01], right=False, labels=["Low", "Medium", "High", "Very High"])
 for yr in (2022, 2024):
@@ -71,9 +71,9 @@ chg = (both.ASIR - both.ASIR_val) / both.ASIR_val * 100
 print(f"full-sample paired n={len(both)} median {chg.median():.2f}% Wilcoxon p {stats.wilcoxon(both.ASIR, both.ASIR_val).pvalue:.3f}"
       f" KW p {stats.kruskal(*[g.values for _, g in chg.groupby(both.HDI_tier)]).pvalue:.3f}")
 
-# ---------------------------------------------------------------- Section V-B
+# ---------------------------------------------------------------- Section V-C (HIV, data quality)
 hiv = pd.read_csv(P + "04_hiv_mediation_sample_n131.csv")    # n = 131
-show(f"V-B  HIV-extended model (n = {len(hiv)})")
+show(f"V-C  HIV-extended model and registry-quality strata (n = {len(hiv)})")
 for v in ["ASIR", "ASMR"]:
     rho, p = stats.spearmanr(hiv.HIV_prev, hiv[v]); print(f"HIV vs {v}: rho {rho:.2f} p {p:.1e}")
 for y in ["logASIR", "logASMR"]:
@@ -91,8 +91,8 @@ for g, s in reg.groupby("registry_quality"):
     print(g, "HDI-ASIR", round(stats.spearmanr(s.HDI, s.ASIR)[0], 2), "HDI-ASMR", round(stats.spearmanr(s.HDI, s.ASMR)[0], 2),
           "tiers", s.HDI_tier.value_counts().to_dict())
 
-# ---------------------------------------------------------------- Section V-C
-show("V-C  Mediation (consistent covariate adjustment)")
+# ---------------------------------------------------------------- Section V-D (mediation)
+show("V-D  Mediation (consistent covariate adjustment)")
 Xc = "HPV_vax_coverage + Screening_program_bin + Smoking_prev_female"
 ma = smf.ols(f"HIV_prev ~ HDI + {Xc}", hiv).fit(); mb = smf.ols(f"logASMR ~ HDI + HIV_prev + {Xc}", hiv).fit()
 mc = smf.ols(f"logASMR ~ HDI + {Xc}", hiv).fit()
@@ -109,8 +109,8 @@ bs = np.array([ab_i(rng.integers(0, n, n)) for _ in range(5000)])
 z0 = stats.norm.ppf((bs < ab).mean()); lo, hi = stats.norm.cdf(2 * z0 + stats.norm.ppf([.025, .975]))
 print("bias-corrected bootstrap 95% CI", np.quantile(bs, [lo, hi]).round(3))
 
-# ---------------------------------------------------------------- Section V-D
-show("V-D  Spatial analysis (n = 131)")
+# ---------------------------------------------------------------- Section V-A (spatial, primary)
+show("V-A  Spatial analysis, primary (n = 131)")
 import libpysal, esda
 from spreg import OLS, ML_Lag
 sp = pd.read_csv(P + "08_spatial_analysis_sample.csv").reset_index(drop=True)
@@ -122,6 +122,7 @@ xv = sp[xcols].values
 def run(w, label):
     w.transform = "r"
     ols = OLS(yv, xv, w=w, spat_diag=True, name_x=xcols, name_y="logASIR")
+    np.random.seed(2026)
     mi = esda.Moran(ols.u.flatten(), w, permutations=999)
     lag = ML_Lag(yv, xv, w=w, name_x=xcols, name_y="logASIR")
     names = ["CONST"] + xcols + ["W_logASIR"]
@@ -136,6 +137,7 @@ def run(w, label):
 w5 = libpysal.weights.KNN.from_array(coords, k=5)
 ols = run(w5, "k-NN k=5 (primary)")
 w5.transform = "r"
+np.random.seed(2026)
 print("Moran raw ASIR", round(esda.Moran(sp.ASIR.values, w5, permutations=999).I, 2),
       " Moran HDI", round(esda.Moran(sp.HDI.values, w5, permutations=999).I, 2))
 print("robust LM-lag", np.round(ols.rlm_lag, 3), " robust LM-error", np.round(ols.rlm_error, 3))
@@ -181,3 +183,61 @@ try:
     yv, xv = yv_b, xv_b
 except Exception as e:
     print("Queen contiguity skipped:", e)
+
+# ---------------------------------------------------------------- Table V
+# Compact comparison of OLS and spatial specifications (seeded permutations so
+# every run gives identical Moran's I p-values).
+show("TABLE V  OLS vs spatial specifications (outcome log ASIR)")
+from spreg import ML_Error
+
+def moran_p(u, w):
+    np.random.seed(2026)
+    m = esda.Moran(u, w, permutations=999)
+    return m.I, m.p_sim
+
+def table_row(label, df, w, model="lag"):
+    w.transform = "r"
+    y, x = df[["logASIR"]].values, df[xcols].values
+    o = OLS(y, x, w=w, spat_diag=True)
+    I, pI = moran_p(o.u.flatten(), w)
+    if model == "lag":
+        m = ML_Lag(y, x, w=w); par = "rho"; tot = m.betas[1][0] / (1 - m.betas[-1][0])
+    else:
+        m = ML_Error(y, x, w=w); par = "lambda"; tot = float("nan")
+    z = m.z_stat
+    print(f"{label:34s} n={len(df):3d} | Moran {I:.2f} (p={pI:.3f}) | {par} {m.betas[-1][0]:.2f} (p={z[-1][1]:.1e}) | "
+          f"HDI {m.betas[1][0]:.2f} (p={z[1][1]:.1e}) | total {tot:.2f} | vax p={z[2][1]:.3f} | screen p={z[3][1]:.3f} | "
+          f"pseudoR2 {m.pr2:.2f} | AIC {m.aic:.1f} | OLS on same n: R2 {o.r2:.2f} AIC {o.aic:.1f}")
+
+o5 = OLS(yv, xv)
+print(f"{'OLS (no spatial term)':34s} n={len(sp):3d} | HDI {o5.betas[1][0]:.2f} (p={o5.t_stat[1][1]:.1e}) | "
+      f"vax p={o5.t_stat[2][1]:.3f} | screen p={o5.t_stat[3][1]:.3f} | R2 {o5.r2:.2f} | AIC {o5.aic:.1f}")
+for k in (5, 3, 8, 10):
+    table_row(f"Lag, k-NN k={k}" + (" (primary)" if k == 5 else ""), sp, libpysal.weights.KNN.from_array(coords, k=k))
+table_row("Error, k-NN k=5", sp, libpysal.weights.KNN.from_array(coords, k=5), model="error")
+table_row("Lag, inverse distance 3,700 km", sp, dist_w(3700, True))
+table_row("Lag, distance band 3,700 km", sp, dist_w(3700, False))
+try:
+    table_row(f"Lag, Queen (islands kept)", sub, libpysal.weights.Queen.from_dataframe(sub, use_index=False, silence_warnings=True))
+    table_row(f"Lag, Queen (islands dropped)", subk, libpysal.weights.Queen.from_dataframe(subk, use_index=False, silence_warnings=True))
+except NameError:
+    print("Queen rows skipped (boundary polygons unavailable)")
+
+# LeSage-Pace impacts for the primary lag model
+w5 = libpysal.weights.KNN.from_array(coords, k=5); w5.transform = "r"
+lag5 = ML_Lag(yv, xv, w=w5); rho5 = lag5.betas[-1][0]; b5 = lag5.betas[1][0]
+S = np.linalg.inv(np.eye(len(sp)) - rho5 * w5.full()[0])
+direct = np.mean(np.diag(S)) * b5; total = b5 / (1 - rho5)
+print(f"\nPrimary lag model HDI impacts: coefficient {b5:.2f}, direct {direct:.2f}, indirect {total-direct:.2f}, total {total:.2f}")
+
+# ---------------------------------------------------------------- V-B / Table VI decomposition
+show("V-B / Table VI  Decomposition of the naive 2.78x -> 4.04x change")
+p22i = panel[panel.Year == 2022].set_index("Code"); p24i = panel[panel.Year == 2024].set_index("Code")
+fi = full.set_index("Alpha-3 code")
+def tr(a, h):
+    t = tier(h); m = a.groupby(t, observed=True).median(); return m["Low"], m["Very High"], m["Low"] / m["Very High"], int((t == "Low").sum())
+for lab, (a, h) in {"2022, all 175 countries": (p22i.ASIR_val, p22i.HDI_val),
+                    "2024, all 176 countries": (fi.ASIR, fi.HDI),
+                    "2024, 156-country analytic sample": (p24i.ASIR_val, p24i.HDI_val),
+                    "2022, same 156 countries": (p22i.loc[p24i.index].ASIR_val, p22i.loc[p24i.index].HDI_val)}.items():
+    lo, vh, r, nl = tr(a, h); print(f"{lab:36s} Low {lo:.2f}  VeryHigh {vh:.2f}  ratio {r:.3f}x  (low-HDI n={nl})")
